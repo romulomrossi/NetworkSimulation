@@ -31,43 +31,34 @@ List createRouterTable(Router router)
                      data->destiny, data->cost);
 
         addGraphEdge(&networkGraph, data->destiny,
-            data->origin, data->cost);
-   
+                     data->origin, data->cost);
 
         currentLink = currentLink->next;
     }
 
-    Node *node = networkGraph.first;
-    while (node != NULL)
-    {
-        GraphNode *graphNode = (GraphNode *)node->data;
-
-        printf("NodeId: %d\n", graphNode->id);
-        printf("AdjacencyList: ");
-        Node *currentEdge = graphNode->adjacency.first;
-        while (currentEdge != NULL)
-        {
-
-            GraphEdge *edge = (GraphEdge *)currentEdge->data;
-
-            printf("(%d, %d) ", edge->destiny, edge->cost);
-
-            currentEdge = currentEdge->next;
-        }
-
-        printf("\n");
-        node = node->next;
-    }
+    printf(LEFT_SEPARATOR "NETWORK GRAPH" RIGHT_SEPARATOR);
+    printGraph(&networkGraph);
 
     List dijkstra = runDijkstra(&networkGraph, router.id);
+    dijkstraBacktrack(&dijkstra);
 
     Node *currentNode = dijkstra.first;
     DijkstraResponse *currentData = NULL;
     while (currentNode != NULL)
     {
         currentData = (DijkstraResponse *)currentNode->data;
-        printf("Cost: %d, Prev: %d, Dest: %d\n", currentData->cost, currentData->prevNode, currentData->destinyNode);
-        
-        currentNode = currentNode -> next;
+        DijkstraResponse *prevNode = ((DijkstraResponse *)currentData->prevNode);
+        printf("Cost: %d, Prev: %d, Dest: %d Path: ", currentData->cost,
+               prevNode != NULL ? prevNode->destinyNode : -1, currentData->destinyNode);
+
+        Node *currentPrevNode = currentData->path.first;
+        while (currentPrevNode != NULL)
+        {
+            printf("%d ", *(int *)currentPrevNode->data);
+            currentPrevNode = currentPrevNode->next;
+        }
+
+        printf("\n");
+        currentNode = currentNode->next;
     }
 }

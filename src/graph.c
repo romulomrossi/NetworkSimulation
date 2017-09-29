@@ -73,7 +73,7 @@ List initializeDijkstra(Graph graph, int originNode)
         newResponse.destinyNode = currentGraphNode->id;
         newResponse.cost = currentGraphNode->id == originNode ? 0 : INF;
         newResponse.path = listNew(sizeof(int));
-        newResponse.prevNode = -1;
+        newResponse.prevNode = NULL;
         newResponse.done = FALSE;
 
         listAppend(&response, &newResponse);
@@ -121,7 +121,7 @@ void relaxEdges(Dijkstra dijkstra, GraphNode *graphNode, DijkstraResponse *dijks
         if (destinyDijkstra->cost > newCost)
         {
             destinyDijkstra->cost = newCost;
-            destinyDijkstra->prevNode = graphNode->id;
+            destinyDijkstra->prevNode = dijkstraPrev;
         }
 
         currentEdge = currentEdge->next;
@@ -161,14 +161,49 @@ DijkstraResponse *decideNext(Dijkstra dijkstra)
 
 void dijkstraBacktrack(Dijkstra dijkstra)
 {
-    ListNode * currentNode = dijkstra->first;
-    DijkstraResponse * currentData;
+    ListNode *currentNode = dijkstra->first;
+    DijkstraResponse *currentData;
     while (currentNode != NULL)
     {
-        currentData = (DijkstraResponse *) currentNode->data;
+        currentData = (DijkstraResponse *)currentNode->data;
 
-        
+        dijkstraGetPath(currentData);
 
         currentNode = currentNode->next;
+    }
+}
+
+void dijkstraGetPath(DijkstraResponse *node)
+{
+    DijkstraResponse *prevData = node->prevNode;
+    while (prevData != NULL)
+    {
+        listPreppend(&node->path, &prevData->destinyNode);
+        prevData = prevData->prevNode;
+    }
+}
+
+void printGraph(List *graph)
+{
+    Node *node = graph->first;
+    while (node != NULL)
+    {
+        GraphNode *graphNode = (GraphNode *)node->data;
+
+        printf("NodeId: %d | ", graphNode->id);
+        printf("AdjacencyList: ");
+        Node *currentEdge = graphNode->adjacency.first;
+        while (currentEdge != NULL)
+        {
+
+            GraphEdge *edge = (GraphEdge *)currentEdge->data;
+
+            printf("(%d, %d) ", edge->destiny, edge->cost);
+
+            currentEdge = currentEdge->next;
+        }
+
+        printf("\n");
+        node = node->next;
     }
 }

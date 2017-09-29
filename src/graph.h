@@ -25,7 +25,7 @@ typedef struct _DijkstraResponse
 {
     int destinyNode;
     int cost;
-    int prevNode;
+    struct _DijkstraResponse *prevNode;
     bool done;
     List path; //List of integers
 } DijkstraResponse;
@@ -38,8 +38,9 @@ GraphNode *getGraphNode(Graph graph, int id);
 
 List initializeDijkstra(Graph graph, int originNode);
 List runDijkstra(Graph graph, int originNode);
-void dijkstraBacktrack(Dijkstra dijkstraResponse);
 DijkstraResponse *decideNext(Dijkstra dijkstra);
+void dijkstraBacktrack(Dijkstra dijkstraResponse);
 void relaxEdges(Dijkstra dijkstra, GraphNode *graphNode, DijkstraResponse *dijkstraResponse);
+void dijkstraGetPath(DijkstraResponse *node);
 
 #include "graph.c"

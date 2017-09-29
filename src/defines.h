@@ -5,3 +5,7 @@
 //Error messages
 #define ERROR_ROUTER_NOT_FOUND "The router id %d was not founded at router.config!\n"
 #define ERROR_NULL_ROUTER_ID "The router id must be passed! Try again.\n"
+
+//Separators
+#define LEFT_SEPARATOR "------------------------| "
+#define RIGHT_SEPARATOR " |------------------------\n"
