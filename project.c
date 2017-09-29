@@ -28,11 +28,4 @@ int main(int argc, char *argv[])
     int routerId = atoi(argv[1]);
 
     Router router = newRouter(routerId);
-
-    RouterConfig testSearch;
-    testSearch.routerId = 4;
-
-    RouterConfig *found = (RouterConfig *) listSearchNode(&router._Network.configs, &testSearch, &compair)->data;
-    printf("\n%d %d %s \n", found->routerId, found->port, found->ip);
-    
 }
