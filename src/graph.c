@@ -158,3 +158,17 @@ DijkstraResponse *decideNext(Dijkstra dijkstra)
 
     return best;
 }
+
+void dijkstraBacktrack(Dijkstra dijkstra)
+{
+    ListNode * currentNode = dijkstra->first;
+    DijkstraResponse * currentData;
+    while (currentNode != NULL)
+    {
+        currentData = (DijkstraResponse *) currentNode->data;
+
+        
+
+        currentNode = currentNode->next;
+    }
+}

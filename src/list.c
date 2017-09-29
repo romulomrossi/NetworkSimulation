@@ -1,6 +1,5 @@
 Node *nodeNew(int dataSize, void *element)
 {
-
     Node *node = (Node *)malloc(sizeof(Node));
     node->size = dataSize;
     node->data = malloc(dataSize);
