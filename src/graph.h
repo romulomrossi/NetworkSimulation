@@ -7,8 +7,6 @@ typedef Node ListNode;
 typedef List *Graph;    //List of GraphNode elements
 typedef List *Dijkstra; //List of DijkstraResponse elements
 
-#define INF 1123456789
-
 typedef struct _adj
 {
     int destiny;
@@ -42,5 +40,7 @@ DijkstraResponse *decideNext(Dijkstra dijkstra);
 void dijkstraBacktrack(Dijkstra dijkstraResponse);
 void relaxEdges(Dijkstra dijkstra, GraphNode *graphNode, DijkstraResponse *dijkstraResponse);
 void dijkstraGetPath(DijkstraResponse *node);
+
+void printGraph(List *graph);
 
 #include "graph.c"

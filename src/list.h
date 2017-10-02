@@ -17,6 +17,7 @@ typedef struct s_Node{
 typedef struct s_List{
     int typeSize;
     int count;
+    int maxSize;
     Node *first;
     Node *last;
 }List;
@@ -32,6 +33,8 @@ bool listPrepend(List *list, void *element);
 
 Node *listPop(Node *node);
 Node *listSearchNode(List *list, void *data, EqualsCompair compair);
+
+void listSetMaxSize(List * list, int size);
 
 bool listHasElements(List *list);
 

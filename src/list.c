@@ -21,11 +21,17 @@ List listNew(int typeSize)
     List list;
 
     list.typeSize = typeSize;
+    list.maxSize = 0;
     list.count = 0;
     list.first = NULL;
     list.last = NULL;
 
     return list;
+}
+
+void listSetMaxSize(List *list, int size)
+{
+    list->maxSize = size;
 }
 
 void listClear(List *list)
@@ -47,6 +53,9 @@ void listClear(List *list)
 
 bool listAppend(List *list, void *element)
 {
+    if (list->maxSize >= list->count && list->maxSize > 0)
+        return FALSE;
+
     Node *newNode = nodeNew(list->typeSize, element);
 
     if (list->count == 0)
@@ -69,6 +78,9 @@ bool listAppend(List *list, void *element)
 
 bool listPreppend(List *list, void *element)
 {
+    if (list->maxSize >= list->count && list->maxSize > 0)
+        return FALSE;
+
     Node *newNode = nodeNew(sizeof(list->typeSize), element);
 
     if (list->count == 0)

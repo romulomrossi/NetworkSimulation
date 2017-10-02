@@ -22,12 +22,16 @@ typedef struct _Route{
 typedef struct _Router{
     int id;
     List routerTable;
+    List buffer;
 
     LinkConfig _Network;
     RouterConfig _Config;
 }Router;
 
 Router newRouter(int routerId);
-List createRouterTable(Router router);
+List createRouterTable(Router *router);
+void setUnreachableNodes(List *routerTable);
+
+void printRouterTable(Router *router);
 
 #include "router.c"

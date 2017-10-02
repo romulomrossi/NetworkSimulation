@@ -9,3 +9,9 @@
 //Separators
 #define LEFT_SEPARATOR "------------------------| "
 #define RIGHT_SEPARATOR " |------------------------\n"
+
+//Infinite
+#define INF 112345678
+
+//Router buffer size
+#define BUFFER_SIZE 10
