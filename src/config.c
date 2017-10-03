@@ -27,6 +27,8 @@ RouterConfig getRouterConfig(int routerId)
         exit(EXIT_FAILURE);
     }
 
+    config.routerId = routerId;
+
     return config;
 }
 

@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 #include "src/defines.h"
 #include "src/list.h"
@@ -14,13 +15,6 @@
 #include "src/graph.h"
 #include "src/router.h"
 
-bool compair(void *a, void *b)
-{
-    RouterConfig *ra = (RouterConfig *) a;
-    RouterConfig *rb = (RouterConfig *) b;
-    
-    return ra->routerId == rb->routerId;
-}
 
 int main(int argc, char *argv[])
 {
@@ -31,6 +25,12 @@ int main(int argc, char *argv[])
     }
 
     int routerId = atoi(argv[1]);
+    pthread_t heardThreadId = 0;
+    pthread_t talkThreadId = 0;
 
     Router router = newRouter(routerId);
+
+    pthread_create(&heardThreadId, NULL, routerHeard, NULL);
+
+    routerTalk(&router);
 }

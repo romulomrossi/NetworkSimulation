@@ -34,4 +34,7 @@ void setUnreachableNodes(List *routerTable);
 
 void printRouterTable(Router *router);
 
+void *routerHeard(void *data);
+void *routerTalk(void *data);
+
 #include "router.c"

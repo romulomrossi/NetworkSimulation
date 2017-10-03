@@ -15,3 +15,6 @@
 
 //Router buffer size
 #define BUFFER_SIZE 10
+
+//Message max size
+#define MESSAGE_SIZE 50

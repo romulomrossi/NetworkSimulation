@@ -31,9 +31,9 @@ void setUnreachableNodes(List *routerTable)
     Route *currentData = NULL;
     while (current != NULL)
     {
-        currentData = (Route *) current->data;
+        currentData = (Route *)current->data;
 
-        if(currentData->cost == INF)
+        if (currentData->cost == INF)
             currentData->nextNode = -1;
 
         current = current->next;
@@ -102,5 +102,28 @@ void printRouterTable(Router *router)
         printf("Destiny: %d, Cost: %d, NextStep: %d \n", route->destiny, route->cost, route->nextNode);
 
         current = current->next;
+    }
+}
+
+void *routerHeard(void *data)
+{
+    Router *router = (Router *) data;
+
+    while(TRUE){
+        sleep(2);
+        printf("hearding \n");
+    }
+}
+
+void *routerTalk(void *data)
+{
+    Router *router = (Router *) data;
+
+    char message[MESSAGE_SIZE];
+    while (TRUE)
+    {
+        scanf("%s", message);
+
+        printf("%s", message);
     }
 }

@@ -14,7 +14,7 @@ typedef struct _RouterConfig
 {
     int routerId;
     int port;
-    char ip[255];
+    char ip[20];
 } RouterConfig;
 
 typedef struct _Link
