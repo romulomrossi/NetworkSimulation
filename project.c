@@ -15,7 +15,6 @@
 #include "src/graph.h"
 #include "src/router.h"
 
-
 int main(int argc, char *argv[])
 {
     if (argc != 2)
@@ -30,7 +29,15 @@ int main(int argc, char *argv[])
 
     Router router = newRouter(routerId);
 
-    pthread_create(&heardThreadId, NULL, routerHeard, NULL);
+    pthread_create(&heardThreadId, NULL, routerHeard, &router);
+    pthread_create(&talkThreadId, NULL, routerTalk, &router);
 
-    routerTalk(&router);
+    while (TRUE)
+    {
+        Packet message;
+        scanf("Tap the router that you need to talk: %d", &message.destinationRouter.routerId);
+        scanf("Tap your message: \n %s", message.content);
+
+        addMessageToBuffer(&router, message);
+    }
 }

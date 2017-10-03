@@ -13,20 +13,28 @@
         -Send message for a network router member.
 */
 
-typedef struct _Route{
+typedef struct _Route
+{
     int destiny;
     int nextNode;
     int cost;
-}Route;
+} Route;
 
-typedef struct _Router{
+typedef struct _Router
+{
     int id;
     List routerTable;
     List buffer;
 
     LinkConfig _Network;
     RouterConfig _Config;
-}Router;
+} Router;
+
+typedef struct _Packet
+{
+    char content[MESSAGE_SIZE];
+    RouterConfig destiny;
+} Packet;
 
 Router newRouter(int routerId);
 List createRouterTable(Router *router);

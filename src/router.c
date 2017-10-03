@@ -13,7 +13,7 @@ Router newRouter(int routerId)
     router._Config = getRouterConfig(routerId);
     router._Network = getLinkConfig();
 
-    router.buffer = listNew(sizeof(char *));
+    router.buffer = listNew(sizeof(Packet));
     listSetMaxSize(&router.buffer, BUFFER_SIZE);
 
     router.routerTable = listNew(sizeof(Route));
@@ -111,7 +111,7 @@ void *routerHeard(void *data)
 
     while(TRUE){
         sleep(2);
-        printf("hearding \n");
+        printf("Router %d hearding at %s:%d \n", router->id, router->_Config.ip, router->_Config.port);
     }
 }
 
