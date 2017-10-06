@@ -31,7 +31,7 @@ void listClear(List *list);
 bool listAppend(List *list, void *element);
 bool listPrepend(List *list, void *element);
 
-Node *listPop(Node *node);
+Node *listPop(List *list, Node *node);
 Node *listSearchNode(List *list, void *data, EqualsCompair compair);
 
 void listSetMaxSize(List * list, int size);

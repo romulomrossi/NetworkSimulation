@@ -25,24 +25,32 @@ typedef struct _Router
     int id;
     List routerTable;
     List buffer;
-
+    pthread_mutex_t bufferLock;
     LinkConfig _Network;
     RouterConfig _Config;
 } Router;
 
 typedef struct _Packet
 {
+    long id;
     char content[MESSAGE_SIZE];
-    RouterConfig destiny;
+    int destinationId;
+    int nextStep;
 } Packet;
 
 Router newRouter(int routerId);
 List createRouterTable(Router *router);
 void setUnreachableNodes(List *routerTable);
 
+void createPrintThread(char *str);
+
 void printRouterTable(Router *router);
 
 void *routerHeard(void *data);
 void *routerTalk(void *data);
+
+bool addPacketToBuffer(Router *router, Packet *packet);
+RouterConfig *getDestinationInfo(Router *router, Packet *packet);
+int getNextStep(Router *router, Packet *dest);
 
 #include "router.c"

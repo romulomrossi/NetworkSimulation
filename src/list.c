@@ -53,7 +53,7 @@ void listClear(List *list)
 
 bool listAppend(List *list, void *element)
 {
-    if (list->maxSize >= list->count && list->maxSize > 0)
+    if (list->maxSize < list->count && list->maxSize > 0)
         return FALSE;
 
     Node *newNode = nodeNew(list->typeSize, element);
@@ -78,10 +78,10 @@ bool listAppend(List *list, void *element)
 
 bool listPreppend(List *list, void *element)
 {
-    if (list->maxSize >= list->count && list->maxSize > 0)
+    if ((list->maxSize < list->count) && (list->maxSize > 0))
         return FALSE;
 
-    Node *newNode = nodeNew(sizeof(list->typeSize), element);
+    Node *newNode = nodeNew(list->typeSize, element);
 
     if (list->count == 0)
     {
@@ -106,8 +106,17 @@ bool listHasElements(List *list)
     return list->count > 0;
 }
 
-Node *listPop(Node *node)
+Node *listPop(List *list, Node *node)
 {
+    if (list->count == 1)
+    {
+        list->first = NULL;
+        list->last = NULL;
+        list->count = 0;
+
+        return node;
+    }
+
     if (node->next != NULL)
         node->next->prev = node->prev;
 
