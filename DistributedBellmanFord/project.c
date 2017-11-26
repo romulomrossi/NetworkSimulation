@@ -16,7 +16,6 @@ pthread_mutex_t consoleMutex;
 #include "src/defines.h"
 #include "src/list.h"
 #include "src/config.h"
-#include "src/graph.h"
 #include "src/router.h"
 
 void printHelp()
@@ -28,10 +27,10 @@ void printHelp()
     printf("\"message\" - Send message for router. \n");
     printf("\"help\" - Show this informations.\n");
     printf("\"rtable\" - Show router table.\n ");
-    
+
     printf("\n\n");
-    
-    printf(LEFT_SEPARATOR "Program running!" RIGHT_SEPARATOR "\n");    
+
+    printf(LEFT_SEPARATOR "Program running!" RIGHT_SEPARATOR "\n");
 }
 
 int main(int argc, char *argv[])
@@ -74,7 +73,6 @@ int main(int argc, char *argv[])
         pthread_mutex_lock(&consoleMutex);
         
         Packet message;
-        message.id = (unsigned long)time(NULL);
         printf("Tap the router that you need to talk: ");
         scanf("%d", &message.destinationId);
         getchar();
@@ -85,9 +83,8 @@ int main(int argc, char *argv[])
         int messageLenght = strlen(message.content);
         message.content[--messageLenght] = '\0';
 
-        if (getNextStep(&router, &message))
-            if (!addPacketToBuffer(&router, &message))
-                printf(ERROR_FULL_BUFFER);
+        if (!addPacketToBuffer(&router, &message))
+            printf(ERROR_FULL_BUFFER);
 
         pthread_mutex_unlock(&consoleMutex);
     }

@@ -12,17 +12,16 @@
 
 typedef struct _RouterConfig
 {
-    int routerId;
+    int id;
     int port;
     char ip[200];
 } RouterConfig;
 
 typedef struct _Link
 {
-    int origin;
-    int destiny;
+    int destination;
     int cost;
-} NetworkNode;
+} Link;
 
 typedef struct _LinkConfig
 {
@@ -31,6 +30,6 @@ typedef struct _LinkConfig
 } LinkConfig;
 
 RouterConfig getRouterConfig(int routerId);
-LinkConfig getLinkConfig();
+LinkConfig getLinkConfig(int routerId);
 
 #include "config.c"

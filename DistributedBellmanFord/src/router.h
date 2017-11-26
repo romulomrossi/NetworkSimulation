@@ -13,34 +13,46 @@
         -Send message for a network router member.
 */
 
+typedef enum { Control, Message } PacketType;
+
 typedef struct _Route
 {
-    int destiny;
-    int nextNode;
+    int destinationId;
+    RouterConfig nextHop;
     int cost;
 } Route;
 
-typedef struct _Router
+typedef struct _DistanceVector
 {
-    int id;
-    List routerTable;
-    List buffer;
-    pthread_mutex_t bufferLock;
-    LinkConfig _Network;
-    RouterConfig _Config;
-} Router;
+    int originNode;
+    List routes; // List of Routes (nextHop will be not used here)
+} DistanceVector;
 
 typedef struct _Packet
 {
-    long id;
+    PacketType type;
     char content[MESSAGE_SIZE];
     int destinationId;
-    int nextStep;
 } Packet;
 
+typedef struct _Router
+{
+    RouterConfig _Config; 
+    List routerTable; //list of Routes
+    List distanceVectors; //list of DistanceVectors
+    List buffer; //list of Packets
+    List neighborsConfigs; //List of RouterConfigs
+    pthread_mutex_t bufferLock;
+    pthread_mutex_t routerTableLock;
+    pthread_mutex_t distanceVectorsLock;
+} Router;
+
+
 Router newRouter(int routerId);
-List createRouterTable(Router *router);
-void setUnreachableNodes(List *routerTable);
+void initializeDistanceVectors(Router *router);
+void updateRouterTable(Router *router);
+void updateRouterTableLine(Router *router, int destination, int nextHopId);
+RouterConfig getRouteNextHop(Router *router, int destination);
 
 void createPrintThread(char *str);
 
@@ -50,7 +62,7 @@ void *routerHeard(void *data);
 void *routerTalk(void *data);
 
 bool addPacketToBuffer(Router *router, Packet *packet);
-RouterConfig *getDestinationInfo(Router *router, Packet *packet);
-int getNextStep(Router *router, Packet *dest);
+RouterConfig *getDestinationInfo(Router *router, int id);
+int getNextHop(Router *router, Packet *dest);
 
 #include "router.c"

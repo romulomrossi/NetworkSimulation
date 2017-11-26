@@ -3,126 +3,50 @@
     Email: romulomrossi@hotmail.com
     Entity: UFFS - Chapecó
 */
-void *lockPrint(void *data)
-{
-    char *string = (char *)data;
-
-    pthread_mutex_lock(&consoleMutex);
-
-    printf("%s", string);
-
-    pthread_mutex_unlock(&consoleMutex);
-}
-
 Router newRouter(int routerId)
 {
     Router router;
-
-    router.id = routerId;
+    router._Config.id = routerId;
 
     router._Config = getRouterConfig(routerId);
-    router._Network = getLinkConfig();
-
     router.buffer = listNew(sizeof(Packet));
     listSetMaxSize(&router.buffer, BUFFER_SIZE);
 
     pthread_mutex_init(&router.bufferLock, NULL);
+    pthread_mutex_init(&router.routerTableLock, NULL);
+    pthread_mutex_init(&router.distanceVectorsLock, NULL);
 
+    initializeDistanceVectors(&router);
     router.routerTable = listNew(sizeof(Route));
-    createRouterTable(&router);
-    setUnreachableNodes(&router.routerTable);
 
+    updateRouterTable(&router);
     printRouterTable(&router);
 
     return router;
 }
 
-void setUnreachableNodes(List *routerTable)
+bool compareDistanceVectors(void *a, void *b)
 {
-    Node *current = routerTable->first;
-    Route *currentData = NULL;
-    while (current != NULL)
-    {
-        currentData = (Route *)current->data;
+    DistanceVector *vectorA = (DistanceVector *)a;
+    DistanceVector *vectorB = (DistanceVector *)b;
 
-        if (currentData->cost == INF)
-            currentData->nextNode = -1;
-
-        current = current->next;
-    }
+    return vectorA->originNode == vectorB->originNode;
 }
 
-int getNextStep(Router *router, Packet *dest)
+bool compareRouterConfigs(void *a, void *b)
 {
-    Node *current = router->routerTable.first;
-    Route *currentData = NULL;
+    RouterConfig *routerA = (RouterConfig *)a;
+    RouterConfig *routerB = (RouterConfig *)b;
 
-    while (current != NULL)
-    {
-        currentData = (Route *)current->data;
-
-        if (currentData->destiny == dest->destinationId)
-            if (currentData->nextNode > -1)
-            {
-                dest->nextStep = currentData->nextNode;
-                return TRUE;
-            }
-
-        current = current->next;
-    }
-
-    char userResponse[500];
-    sprintf(userResponse, ERROR_UNREACHEABLE_ROUTER, dest->destinationId);
-    createPrintThread(userResponse);
-    return FALSE;
+    return routerA->id == routerB->id;
 }
 
-List createRouterTable(Router *router)
+bool compareRoutes(void *a, void *b)
 {
-    List networkGraph = newGraph();
+    Route *routeA = (Route *)a;
+    Route *routeB = (Route *)b;
 
-    Node *currentLink = router->_Network.links.first;
-    while (currentLink != NULL)
-    {
-        NetworkNode *data = (NetworkNode *)currentLink->data;
-        addGraphEdge(&networkGraph, data->origin,
-                     data->destiny, data->cost);
-        addGraphEdge(&networkGraph, data->destiny,
-                     data->origin, data->cost);
-
-        currentLink = currentLink->next;
-    }
-
-    printf(LEFT_SEPARATOR "NETWORK GRAPH" RIGHT_SEPARATOR);
-    printGraph(&networkGraph);
-
-    List dijkstra = runDijkstra(&networkGraph, router->id);
-
-    Node *currentNode = dijkstra.first;
-    DijkstraResponse *currentData = NULL;
-    while (currentNode != NULL)
-    {
-        currentData = (DijkstraResponse *)currentNode->data;
-
-        DijkstraResponse *nextStep = currentData;
-        while (TRUE)
-        {
-            if (nextStep->prevNode == NULL)
-                break;
-            if (nextStep->prevNode->prevNode == NULL)
-                break;
-            nextStep = nextStep->prevNode;
-        }
-
-        Route route;
-
-        route.nextNode = nextStep->destinyNode;
-        route.cost = currentData->cost;
-        route.destiny = currentData->destinyNode;
-
-        listAppend(&router->routerTable, &route);
-        currentNode = currentNode->next;
-    }
+    return routeA->destinationId == routeB->destinationId;
 }
 
 void printRouterTable(Router *router)
@@ -136,10 +60,100 @@ void printRouterTable(Router *router)
     {
         route = (Route *)current->data;
 
-        printf("Destiny: %d, Cost: %d, NextStep: %d \n", route->destiny, route->cost, route->nextNode);
+        printf("Destiny: %d, NextStep: %d \n", route->destinationId, route->nextHop.id);
 
         current = current->next;
     }
+}
+
+void updateRouterTable(Router *router)
+{
+    DistanceVector *vector = (DistanceVector *)router->distanceVectors.first->data;
+    Node *iterator = vector->routes.first;
+
+    pthread_mutex_lock(&router->routerTableLock);
+    while (iterator != NULL)
+    {
+        Route *route = (Route *)iterator->data;
+        updateRouterTableLine(router, route->destinationId, route->nextHop.id);
+
+        iterator = iterator->next;
+    }
+    pthread_mutex_unlock(&router->routerTableLock);
+}
+
+void updateRouterTableLine(Router *router, int destination, int nextHopId)
+{
+    Route newRoute;
+    newRoute.destinationId = destination;
+    newRoute.nextHop = getRouteNextHop(router, nextHopId);
+
+    Node *existentRoute = listSearchNode(&router->routerTable, &newRoute, compareRoutes);
+
+    if (existentRoute != NULL)
+        existentRoute->data = &newRoute;
+    else
+        listAppend(&router->routerTable, &newRoute);
+}
+
+RouterConfig getRouteNextHop(Router *router, int destination)
+{
+    RouterConfig config;
+    config.id = destination;
+    Node *listNode = listSearchNode(&router->neighborsConfigs, &config, compareRouterConfigs);
+
+    return (*((RouterConfig *)listNode->data));
+}
+
+DistanceVector newDistanceVector(int origin)
+{
+    DistanceVector vector;
+
+    vector.originNode = origin;
+    vector.routes = listNew(sizeof(Route));
+
+    return vector;
+}
+
+void initializeDistanceVectors(Router *router)
+{
+    LinkConfig neighborhood = getLinkConfig(router->_Config.id);
+    router->distanceVectors = listNew(sizeof(DistanceVector));
+    router->neighborsConfigs = neighborhood.configs;
+    DistanceVector distanceVector = newDistanceVector(router->_Config.id);
+
+    Node *iterator = neighborhood.links.first;
+    while (iterator != NULL)
+    {
+        Link *link = (Link *)iterator->data;
+
+        Route route;
+        route.destinationId = link->destination;
+        route.cost = link->cost;
+        route.nextHop.id = link->destination;
+        listAppend(&distanceVector.routes, &route);
+
+        iterator = iterator->next;
+    }
+
+    listAppend(&router->distanceVectors, &distanceVector);
+}
+
+void *lockPrint(void *data)
+{
+    char *string = (char *)data;
+
+    pthread_mutex_lock(&consoleMutex);
+
+    printf("%s", string);
+
+    pthread_mutex_unlock(&consoleMutex);
+}
+
+void createPrintThread(char *str)
+{
+    pthread_t threadId;
+    pthread_create(&threadId, NULL, lockPrint, str);
 }
 
 bool addPacketToBuffer(Router *router, Packet *packet)
@@ -192,7 +206,7 @@ void *routerHeard(void *data)
         if ((receivedLen = recvfrom(socketId, receivedData, sizeof(Packet), 0, (void *)&originAddr, &slen)) == -1)
             exit(EXIT_FAILURE);
 
-        if (receivedData->destinationId == router->id)
+        if (receivedData->destinationId == router->_Config.id)
         {
             sprintf(userResponse, "\nReceived packet from %s: %d \n Data: %s\n",
                     inet_ntoa(originAddr.sin_addr), ntohs(originAddr.sin_port), receivedData->content);
@@ -201,12 +215,11 @@ void *routerHeard(void *data)
         {
             sprintf(userResponse, "Received packet from %s:%d, it will be sent to router: %d\n",
                     inet_ntoa(originAddr.sin_addr), ntohs(originAddr.sin_port), receivedData->destinationId);
-            if (getNextStep(router, receivedData))
-                if (!addPacketToBuffer(router, receivedData))
-                {
-                    printf(ERROR_FULL_BUFFER);
-                    ack = 0;
-                }
+            if (!addPacketToBuffer(router, receivedData))
+            {
+                printf(ERROR_FULL_BUFFER);
+                ack = 0;
+            }
         }
 
         createPrintThread(userResponse);
@@ -218,12 +231,6 @@ void *routerHeard(void *data)
     free(data);
     close(socketId);
     return 0;
-}
-
-void createPrintThread(char *str)
-{
-    pthread_t threadId;
-    pthread_create(&threadId, NULL, lockPrint, str);
 }
 
 void *routerTalk(void *data)
@@ -244,7 +251,8 @@ void *routerTalk(void *data)
                 {
                     packetReference = listPop(&router->buffer, router->buffer.last);
                     packet = (Packet *)packetReference->data;
-                    destinationConfig = getDestinationInfo(router, packet);
+                    pthread_mutex_unlock(&router->bufferLock);                    
+                    destinationConfig = getDestinationInfo(router, packet->destinationId);
 
                     struct sockaddr_in socketAddress;
                     int socketId;
@@ -266,7 +274,7 @@ void *routerTalk(void *data)
                         fprintf(stderr, "Sending: inet_aton() failed\n");
                         exit(EXIT_FAILURE);
                     }
-                    printf("Info: sending packet to router %d\n", destinationConfig->routerId);
+                    printf("Info: sending packet to router %d\n", destinationConfig->id);
 
                     int tries = TRIES;
                     int ack = 0;
@@ -300,25 +308,27 @@ void *routerTalk(void *data)
                     free(packet);
                     free(packetReference);
                 }
-                pthread_mutex_unlock(&router->bufferLock);
+                else
+                    pthread_mutex_unlock(&router->bufferLock);
             }
             usleep(1);
         }
     }
 }
 
-RouterConfig *getDestinationInfo(Router *router, Packet *packet)
+RouterConfig *getDestinationInfo(Router *router, int id)
 {
-    Node *currentNodeInfo = router->_Network.configs.first;
-    RouterConfig *currentInfo = NULL;
-    while (currentNodeInfo != NULL)
+    pthread_mutex_lock(&router->routerTableLock);
+
+    Node *iterator = router->routerTable.first;
+    while (iterator != NULL)
     {
-        currentInfo = (RouterConfig *)currentNodeInfo->data;
+        Route *route = (Route *)iterator->data;
+        if (route->destinationId == id)
+            return &route->nextHop;
 
-        if (currentInfo->routerId == packet->nextStep)
-            return currentInfo;
-
-        currentNodeInfo = currentNodeInfo->next;
+        iterator = iterator->next;
     }
-    return NULL;
+
+    pthread_mutex_unlock(&router->routerTableLock);
 }

@@ -27,41 +27,41 @@ RouterConfig getRouterConfig(int routerId)
         exit(EXIT_FAILURE);
     }
 
-    config.routerId = routerId;
+    config.id = routerId;
 
     return config;
 }
 
-LinkConfig getLinkConfig()
+LinkConfig getLinkConfig(int routerId)
 {
     LinkConfig config;
     char line[256];
     FILE *file = fopen(LINK_CONFIG_PATH, "r");
     fseek(file, 0, SEEK_SET);
 
-    config.links = listNew(sizeof(NetworkNode));
+    config.links = listNew(sizeof(Link));
     config.configs = listNew(sizeof(RouterConfig));
 
     while (!feof(file))
     {
-        NetworkNode node;
+        Link node;
+        int origin, destination;
 
         fgets(line, sizeof(line), file);
-        sscanf(line, "%d %d %d\n", &node.origin, &node.destiny, &node.cost);
+        sscanf(line, "%d %d %d\n", &origin, &destination, &node.cost);
 
-        listAppend(&config.links, &node);
-    }
+        if (routerId == origin)
+            node.destination = destination;
+        else if (routerId == destination)
+            node.destination = origin;
 
-    file = fopen(ROUTER_CONFIG_PATH, "r");
-
-    while (!feof(file))
-    {
-        RouterConfig routerConfig;
-        fgets(line, sizeof(line), file);
-
-        sscanf(line, "%d %d %s\n", &routerConfig.routerId, &routerConfig.port, routerConfig.ip);
-
-        listAppend(&config.configs, &routerConfig);
+        if (routerId == origin || routerId == destination)
+        {
+            listAppend(&config.links, &node);
+            
+            RouterConfig destinationConfig = getRouterConfig(node.destination);
+            listAppend(&config.configs, &destinationConfig);
+        }
     }
     return config;
 }
