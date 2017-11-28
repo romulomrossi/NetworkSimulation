@@ -265,7 +265,6 @@ DistanceVector *deserializeDistanceVector(char *input)
         Route route;
         int cost, dest;
         sscanf(p, "(%d,%d)", &dest, &cost);
-        printf("%d,%d\n", dest, cost);
 
         route.destinationId = dest;
         route.cost = cost;
