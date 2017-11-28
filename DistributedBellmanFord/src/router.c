@@ -120,18 +120,21 @@ void *updateDistanceVector(void *data)
                 neighborRoute->nextHop.id = neighborConfig->id;
                 neighborRoute->cost += neighborConfig->linkCost;
 
-                if (ownRouteRef == NULL)
-                    listAppend(&ownVector->routes, neighborRoute);
-                else
+                if(neighborRoute->destinationId != router->_Config.id)
                 {
-                    Route *ownRoute = (Route *)ownRouteRef->data;
-                    int newDistance = neighborRoute->cost + neighborConfig->linkCost;
-                    if (newDistance < ownRoute->cost)
+                    if (ownRouteRef == NULL)
+                        listAppend(&ownVector->routes, neighborRoute);
+                    else 
                     {
-                        ownRoute->cost = newDistance;
-                        ownRoute->nextHop.id = neighborConfig->id;
+                        Route *ownRoute = (Route *)ownRouteRef->data;
+                        if (neighborRoute->cost < ownRoute->cost)
+                        {
+                            ownRoute->cost = neighborRoute->cost;
+                            ownRoute->nextHop.id = neighborConfig->id;
+                        }
                     }
                 }
+
 
                 routeIterator = routeIterator->next;
             }
@@ -418,7 +421,10 @@ void *routerTalk(void *data)
                         nextHopConfig = getNextHopInfo(router, packet->destinationId);
 
                         if (nextHopConfig == NULL)
+                        {
+                            acquired = FALSE;
                             continue;
+                        }
 
                         struct sockaddr_in socketAddress;
                         int socketId;
