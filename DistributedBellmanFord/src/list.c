@@ -117,11 +117,28 @@ Node *listPop(List *list, Node *node)
         return node;
     }
 
+    list->count--;
+
     if (node->next != NULL)
         node->next->prev = node->prev;
 
     if (node->prev != NULL)
         node->prev->next = node->next;
+
+    return node;
+}
+
+Node *listUnqueue(List *list)
+{
+    Node *node = list->first;
+    Node *nextN = node->next;
+    if (nextN != NULL)
+        nextN->prev = NULL;
+    else
+        list->last = NULL;
+
+    list->count--;
+    list->first = nextN;
 
     return node;
 }
@@ -140,4 +157,26 @@ Node *listSearchNode(List *list, void *data, EqualsCompair compair)
     }
 
     return NULL;
+}
+
+void listRemove(List *list, Node *r)
+{
+    if (list->first == r)
+        list->first = list->first->next;
+    if (list->last == r)
+        list->last = list->last->prev;
+
+    Node *iterator = list->first;
+    while (iterator != NULL)
+    {
+        if (iterator == r)
+        {
+            iterator->next = r->next;
+            iterator->prev = r->prev;
+            break;
+        }
+
+        iterator = iterator->next;
+    }
+    free(r);
 }

@@ -51,18 +51,25 @@ typedef struct _Router
 Router newRouter(int routerId);
 void initializeDistanceVectors(Router *router);
 void updateRouterTable(Router *router);
-void updateRouterTableLine(Router *router, int destination, int nextHopId);
+void updateRouterTableLine(Router *router, int destination, int nextHopId, int cost);
 RouterConfig getRouteNextHop(Router *router, int destination);
+void setRouteAsDead(Router *router, RouterConfig *destinationNode);
+
+void proccessControlPacket(Router *router, Packet *receivedData);
+
+char* serializeDistanceVector(DistanceVector *vector);
+DistanceVector *deserializeDistanceVector(char *input);
 
 void createPrintThread(char *str);
-
 void printRouterTable(Router *router);
 
 void *routerHeard(void *data);
 void *routerTalk(void *data);
 
 bool addPacketToBuffer(Router *router, Packet *packet);
-RouterConfig *getDestinationInfo(Router *router, int id);
+RouterConfig *getNextHopInfo(Router *router, int id);
 int getNextHop(Router *router, Packet *dest);
+
+void shareDistanceVector(Router *router);
 
 #include "router.c"

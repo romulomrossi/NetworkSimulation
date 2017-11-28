@@ -14,6 +14,7 @@ typedef struct _RouterConfig
 {
     int id;
     int port;
+    int linkCost;
     char ip[200];
 } RouterConfig;
 

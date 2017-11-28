@@ -60,6 +60,7 @@ LinkConfig getLinkConfig(int routerId)
             listAppend(&config.links, &node);
             
             RouterConfig destinationConfig = getRouterConfig(node.destination);
+            destinationConfig.linkCost = node.cost;
             listAppend(&config.configs, &destinationConfig);
         }
     }

@@ -36,7 +36,7 @@ void printHelp()
 int main(int argc, char *argv[])
 {
     pthread_mutex_init(&consoleMutex, NULL);
-
+    sleep(1);
     if (argc != 2)
     {
         printf(ERROR_NULL_ROUTER_ID);
@@ -46,11 +46,13 @@ int main(int argc, char *argv[])
     int routerId = atoi(argv[1]);
     pthread_t heardThreadId = 0;
     pthread_t talkThreadId = 0;
+    pthread_t distanceVectorThreadId = 0;
 
     Router router = newRouter(routerId);
 
-    pthread_create(&talkThreadId, NULL, routerTalk, &router);
     pthread_create(&heardThreadId, NULL, routerHeard, &router);
+    pthread_create(&talkThreadId, NULL, routerTalk, &router);
+    pthread_create(&distanceVectorThreadId, NULL, updateDistanceVector, &router);
 
     printHelp();
 
@@ -73,6 +75,7 @@ int main(int argc, char *argv[])
         pthread_mutex_lock(&consoleMutex);
         
         Packet message;
+        message.type = 0;
         printf("Tap the router that you need to talk: ");
         scanf("%d", &message.destinationId);
         getchar();

@@ -23,16 +23,16 @@
 #define RIGHT_SEPARATOR " |------------------------\n"
 
 //Infinite
-#define INF 112345678
+#define INF 20
 
 //Router buffer size
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 100
 
 //Message max size
 #define MESSAGE_SIZE 100
 
 //Number of tries to send package 
-#define TRIES 5
+#define TRIES 2
 
 //Timeout in package send in milliseconds
 #define TIMEOUT 2
